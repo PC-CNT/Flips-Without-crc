@@ -85,11 +85,7 @@ enum bpserror bps_apply(struct mem patch, struct mem in, struct mem * out, struc
 		if (read8()!='S') error(bps_broken);
 		if (read8()!='1') error(bps_broken);
 		
-		uint32_t crc_in_e = read32(patch.ptr+patch.len-12);
-		uint32_t crc_out_e = read32(patch.ptr+patch.len-8);
 		uint32_t crc_patch_e = read32(patch.ptr+patch.len-4);
-		
-		uint32_t crc_in_a = crc32(in.ptr, in.len);
 		uint32_t crc_patch_a = crc32(patch.ptr, patch.len-4);
 		
 		if (crc_patch_a != crc_patch_e) error(bps_broken);
@@ -99,13 +95,6 @@ enum bpserror bps_apply(struct mem patch, struct mem in, struct mem * out, struc
 		
 		size_t outlen;
 		decodeto(outlen);
-		
-		if (inlen!=in.len || crc_in_a!=crc_in_e)
-		{
-			if (in.len==outlen && crc_in_a==crc_out_e) error=bps_to_output;
-			else error=bps_not_this;
-			if (!accept_wrong_input) goto exit;
-		}
 		
 		out->len=outlen;
 		out->ptr=(uint8_t*)malloc(outlen);
@@ -189,13 +178,6 @@ enum bpserror bps_apply(struct mem patch, struct mem in, struct mem * out, struc
 		if (patchat!=patchend) error(bps_broken);
 		if (outat!=outend) error(bps_broken);
 		
-		uint32_t crc_out_a = crc32(out->ptr, out->len);
-		
-		if (crc_out_a!=crc_out_e)
-		{
-			error=bps_not_this;
-			if (!accept_wrong_input) goto exit;
-		}
 		return error;
 #undef read8
 #undef decodeto
